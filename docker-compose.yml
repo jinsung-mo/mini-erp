@@ -1,0 +1,23 @@
+name: mini-erp
+
+services:
+  db:
+    image: postgres:17
+    container_name: mini-erp-db
+    environment:
+      POSTGRES_DB: erp
+      POSTGRES_USER: erp
+      POSTGRES_PASSWORD: erp
+    ports:
+      # 이 PC에서만 접속 가능 (mini-mes가 55432를 쓰므로 55433)
+      - "127.0.0.1:55433:5432"
+    volumes:
+      - erp-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U erp -d erp"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  erp-db-data:
