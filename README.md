@@ -29,24 +29,54 @@ ERP의 본질은 화면이 아니라 **"한 번 입력된 거래가 모든 모�
 [판매]  수주(SO) ──가용재고 확인──▶ 출고 ──┘
 ```
 
+## 구조
+
+```
+mini-erp/
+├─ erp-web/            WEB  React + TypeScript (Vite)      :5173  /api → WAS로 프록시
+├─ erp-api/            WAS  Spring Boot + JPA              :8082
+│  └─ com.minierp
+│     ├─ common/       공통: 에러 응답(ProblemDetail + code)
+│     └─ system/       3계층 연결 확인용 상태 API
+│                      (1단계부터 master/ purchase/ inventory/ sales/ 가 도메인별로 추가된다)
+├─ docker-compose.yml  DB   PostgreSQL 17                  :55433
+└─ docs/               단계별 설계 이유와 트러블슈팅 기록
+```
+
 ## 기술 스택과 선택 이유
 
 | 영역 | 기술 | 이유 |
 |---|---|---|
-| Backend | Java 17, Spring Boot 3, Spring Data JPA | 엔터프라이즈 표준. 도메인 객체에 상태 전이 규칙을 담기 좋음 |
-| DB | PostgreSQL | 트랜잭션·락(`SELECT ... FOR UPDATE`)·제약조건을 제대로 다루기 위해 |
-| Frontend | React + TypeScript (Vite) | ERP 화면은 그리드·폼 중심이라 타입 안정성이 중요 |
-| Test | JUnit 5, 동시성 테스트 | 재고 차감 경쟁 조건을 재현하고 검증하기 위해 |
+| Backend | Java 17, Spring Boot 4.1, Spring Data JPA (Hibernate 7) | 엔터프라이즈 표준. 도메인 객체에 상태 전이 규칙을 담기 좋음 |
+| DB | PostgreSQL 17 | 트랜잭션·락(`SELECT ... FOR UPDATE`)·제약조건을 실제 DB로 다루기 위해 |
+| Frontend | React 19 + TypeScript (Vite) | ERP 화면은 그리드·폼 중심이라 타입 안정성이 중요 |
+| Error | RFC 9457 ProblemDetail + 업무 `code` | HTTP 상태코드는 표준대로, 화면 분기는 `code`로 |
+| Test | JUnit 5, MockMvc, 동시성 테스트 | 재고 차감 경쟁 조건을 재현하고 검증하기 위해 |
+
+## 실행 방법
+
+```bash
+# 1) DB
+docker compose up -d
+
+# 2) API (http://127.0.0.1:8082)
+cd erp-api && ./gradlew bootRun
+
+# 3) 화면 (http://localhost:5173)
+cd erp-web && npm install && npm run dev
+```
+
+테스트: `cd erp-api && ./gradlew test` · 화면 빌드/린트: `cd erp-web && npm run build && npm run lint`
 
 ## 로드맵
 
-- [ ] 0. 프로젝트 골격 — Spring Boot, React, PostgreSQL, 공통 응답/예외
-- [ ] 1. 기준정보 — 품목·거래처·창고 CRUD (마스터 데이터의 의미)
-- [ ] 2. 구매 — 발주 → 승인 → 입고, 상태 전이
-- [ ] 3. 재고 — 수불 이력(원장) 기반 현재고, 입고 연동
-- [ ] 4. 판매 — 수주 → 출고, 가용 재고 검증
-- [ ] 5. 트러블슈팅 — 동시 출고 시 재고 음수 재현 → 락/낙관적 락으로 해결
-- [ ] 6. 트러블슈팅 — N+1, 대량 조회 페이징, 정합성 검증 배치
-- [ ] 7. 문서화 — 아키텍처 결정 기록(ADR)
+- [x] 0. 프로젝트 골격: 3계층 연결, 공통 에러 응답, 상태 화면 → [docs/00-skeleton.md](docs/00-skeleton.md)
+- [ ] 1. 기준정보: 품목·거래처·창고 CRUD (마스터 데이터의 의미)
+- [ ] 2. 구매: 발주 → 승인 → 입고, 상태 전이
+- [ ] 3. 재고: 수불 이력(원장) 기반 현재고, 입고 연동
+- [ ] 4. 판매: 수주 → 출고, 가용 재고 검증
+- [ ] 5. 트러블슈팅: 동시 출고 시 재고 음수 재현 → 락/낙관적 락으로 해결
+- [ ] 6. 트러블슈팅: N+1, 대량 조회 페이징, 정합성 검증 배치
+- [ ] 7. 문서화: 아키텍처 결정 기록(ADR)
 
 각 단계의 설계 이유와 트러블슈팅 과정은 `docs/`에 남깁니다.
