@@ -1,3 +1,5 @@
+import { getOperatorId } from '../session/operator'
+
 /** 백엔드 에러 응답 형식: RFC 9457 ProblemDetail + 업무 에러 code */
 export type ProblemDetail = {
   type?: string
@@ -37,6 +39,8 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   if (init?.body !== undefined && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json')
   }
+  // 서버가 등록자·수정자로 남길 작업자
+  headers.set('X-User', getOperatorId())
 
   let res: Response
   try {
@@ -59,6 +63,11 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
     return undefined as T
   }
   return (await res.json()) as T
+}
+
+/** catch로 받은 값을 ApiError로 맞춘다 (api()는 항상 ApiError를 던지지만, 그 밖의 코드에서 난 예외도 대비) */
+export function toApiError(e: unknown): ApiError {
+  return e instanceof ApiError ? e : new ApiError(0, 'UNKNOWN', '알 수 없는 오류가 발생했습니다.', [], false)
 }
 
 async function readProblem(res: Response): Promise<ProblemDetail | null> {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { api, ApiError } from '../api/client'
+import { api, type ApiError, toApiError } from '../api/client'
 
 type SystemStatus = {
   application: string
@@ -50,9 +50,7 @@ async function fetchStatus(): Promise<CheckState> {
     const status = await api<SystemStatus>('/system/status')
     return { kind: 'ok', status, checkedAt: new Date() }
   } catch (e) {
-    const error =
-      e instanceof ApiError ? e : new ApiError(0, 'UNKNOWN', '알 수 없는 오류가 발생했습니다.', [], false)
-    return { kind: 'error', error, checkedAt: new Date() }
+    return { kind: 'error', error: toApiError(e), checkedAt: new Date() }
   }
 }
 
