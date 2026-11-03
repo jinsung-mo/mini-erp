@@ -1,0 +1,20 @@
+# Java / Gradle
+.gradle/
+build/
+out/
+*.class
+
+# Node
+node_modules/
+dist/
+
+# IDE / OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# env
+.env
+*.local
