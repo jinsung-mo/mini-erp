@@ -1,10 +1,12 @@
 package com.minierp.common.error;
 
+import java.sql.SQLException;
 import java.util.Map;
 
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -33,6 +35,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
 	private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+	/** PostgreSQL unique_violation */
+	private static final String UNIQUE_VIOLATION = "23505";
+
 	/** 1) 업무 규칙 위반: 의도한 실패라서 스택트레이스 없이 INFO로 남긴다 */
 	@ExceptionHandler(BusinessException.class)
 	public ProblemDetail handleBusiness(BusinessException e) {
@@ -49,6 +54,20 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 				.map(error -> new FieldErrorDetail(error.getField(), error.getDefaultMessage()))
 				.toList());
 		return handleExceptionInternal(ex, body, headers, status, request);
+	}
+
+	/**
+	 * DB 제약조건 위반.
+	 * unique 위반(SQLState 23505)은 "중복 검사는 통과했지만 동시에 들어온 다른 요청이 먼저 저장한" 경우라서 409로 알려준다.
+	 * 그 밖의 위반(NOT NULL, FK, CHECK)은 입력 검증이나 업무 규칙이 놓친 버그이므로 500으로 남긴다.
+	 */
+	@ExceptionHandler(DataIntegrityViolationException.class)
+	public ProblemDetail handleDataIntegrity(DataIntegrityViolationException e) {
+		if (e.getMostSpecificCause() instanceof SQLException sql && UNIQUE_VIOLATION.equals(sql.getSQLState())) {
+			log.warn("unique constraint violation: {}", sql.getMessage());
+			return problem(ErrorCode.DUPLICATE_KEY, ErrorCode.DUPLICATE_KEY.getMessage());
+		}
+		return handleUnexpected(e);
 	}
 
 	/** 3) 예상하지 못한 예외: 원인은 로그에만 남기고, 응답에는 내부 정보를 노출하지 않는다 */

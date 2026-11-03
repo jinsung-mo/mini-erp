@@ -9,10 +9,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.sql.SQLException;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -90,9 +93,35 @@ class GlobalExceptionHandlerTest {
 				.andExpect(jsonPath("$.detail").value("서버 내부 오류가 발생했습니다."));
 	}
 
+	@Test
+	void DB_unique_제약_위반은_409_DUPLICATE_KEY() throws Exception {
+		mockMvc.perform(get("/test/unique-violation"))
+				.andExpect(status().isConflict())
+				.andExpect(jsonPath("$.code").value("DUPLICATE_KEY"));
+	}
+
+	@Test
+	void 그_밖의_DB_제약_위반은_버그이므로_500() throws Exception {
+		mockMvc.perform(get("/test/not-null-violation"))
+				.andExpect(status().isInternalServerError())
+				.andExpect(jsonPath("$.code").value("INTERNAL_SERVER_ERROR"));
+	}
+
 	@RestController
 	@RequestMapping("/test")
 	static class TestController {
+
+		@GetMapping("/unique-violation")
+		void uniqueViolation() {
+			throw new DataIntegrityViolationException("duplicate",
+					new SQLException("duplicate key value violates unique constraint \"uk_item_code\"", "23505"));
+		}
+
+		@GetMapping("/not-null-violation")
+		void notNullViolation() {
+			throw new DataIntegrityViolationException("not null",
+					new SQLException("null value in column \"name\" violates not-null constraint", "23502"));
+		}
 
 		@GetMapping("/business")
 		void business() {
