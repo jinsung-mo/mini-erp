@@ -1,0 +1,34 @@
+spring:
+  application:
+    name: erp-api
+
+  datasource:
+    # 환경변수가 있으면 그 값을, 없으면 로컬 docker-compose DB를 쓴다
+    url: ${DB_URL:jdbc:postgresql://127.0.0.1:55433/erp}
+    username: ${DB_USERNAME:erp}
+    password: ${DB_PASSWORD:erp}
+    hikari:
+      # 커넥션을 못 얻으면 기본 30초를 기다린다. 로컬에서는 DB가 꺼졌을 때 빨리 알 수 있게 5초로 줄인다
+      connection-timeout: 5000
+
+  jpa:
+    # OSIV 끄기: 트랜잭션(Service)이 끝나면 DB 커넥션도 반납한다.
+    # 켜 두면 화면 응답이 끝날 때까지 커넥션을 붙잡아서, 요청이 몰릴 때 커넥션 풀이 바닥난다
+    open-in-view: false
+    hibernate:
+      # 테이블은 Hibernate가 만들지 않는다. 1단계부터 DDL을 직접 관리하고, Hibernate는 엔티티와 맞는지 검사만 한다
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+
+server:
+  port: 8082
+  # 같은 네트워크의 다른 PC에서 접근하지 못하게 이 PC(IPv4 loopback)에서만 받는다
+  address: 127.0.0.1
+
+logging:
+  level:
+    # 학습용: JPA가 실제로 어떤 SQL을 실행하는지, 어떤 값이 바인딩되는지 본다
+    org.hibernate.SQL: debug
+    org.hibernate.orm.jdbc.bind: trace

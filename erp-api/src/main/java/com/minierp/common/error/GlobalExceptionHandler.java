@@ -1,0 +1,85 @@
+package com.minierp.common.error;
+
+import java.util.Map;
+
+import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+
+/**
+ * 모든 에러 응답을 RFC 9457 ProblemDetail 형식으로 통일한다.
+ *
+ * <pre>
+ * HTTP/1.1 409 Conflict
+ * { "type": "about:blank", "title": "Conflict", "status": 409,
+ *   "detail": "재고가 부족합니다.", "instance": "/api/...", "code": "INSUFFICIENT_STOCK" }
+ * </pre>
+ *
+ * ResponseEntityExceptionHandler를 상속하면 Spring이 던지는 예외(없는 URL 404, 405, JSON 파싱 실패 400 등)도
+ * 같은 형식으로 나간다. 우리는 그 위에 code 필드만 덧붙인다.
+ */
+@RestControllerAdvice
+public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+
+	private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+	/** 1) 업무 규칙 위반: 의도한 실패라서 스택트레이스 없이 INFO로 남긴다 */
+	@ExceptionHandler(BusinessException.class)
+	public ProblemDetail handleBusiness(BusinessException e) {
+		log.info("business error: {} - {}", e.getErrorCode(), e.getMessage());
+		return problem(e.getErrorCode(), e.getMessage());
+	}
+
+	/** 2) @Valid 검증 실패: 어느 필드가 왜 틀렸는지 errors 배열로 알려준다 */
+	@Override
+	protected @Nullable ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
+			HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+		ProblemDetail body = problem(ErrorCode.INVALID_INPUT, ErrorCode.INVALID_INPUT.getMessage());
+		body.setProperty("errors", ex.getBindingResult().getFieldErrors().stream()
+				.map(error -> new FieldErrorDetail(error.getField(), error.getDefaultMessage()))
+				.toList());
+		return handleExceptionInternal(ex, body, headers, status, request);
+	}
+
+	/** 3) 예상하지 못한 예외: 원인은 로그에만 남기고, 응답에는 내부 정보를 노출하지 않는다 */
+	@ExceptionHandler(Exception.class)
+	public ProblemDetail handleUnexpected(Exception e) {
+		log.error("unexpected error", e);
+		return problem(ErrorCode.INTERNAL_SERVER_ERROR, ErrorCode.INTERNAL_SERVER_ERROR.getMessage());
+	}
+
+	/** Spring이 만든 ProblemDetail에도 code가 빠지지 않게 HTTP 상태 이름을 code로 넣는다 (예: METHOD_NOT_ALLOWED) */
+	@Override
+	protected ResponseEntity<Object> createResponseEntity(@Nullable Object body, HttpHeaders headers,
+			HttpStatusCode statusCode, WebRequest request) {
+		if (body instanceof ProblemDetail problem && !hasCode(problem)) {
+			HttpStatus status = HttpStatus.resolve(statusCode.value());
+			problem.setProperty("code", status != null ? status.name() : "HTTP_" + statusCode.value());
+		}
+		return super.createResponseEntity(body, headers, statusCode, request);
+	}
+
+	private static ProblemDetail problem(ErrorCode code, String detail) {
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(code.getStatus(), detail);
+		problem.setProperty("code", code.name());
+		return problem;
+	}
+
+	private static boolean hasCode(ProblemDetail problem) {
+		Map<String, @Nullable Object> properties = problem.getProperties();
+		return properties != null && properties.containsKey("code");
+	}
+
+	public record FieldErrorDetail(String field, @Nullable String message) {
+	}
+}
