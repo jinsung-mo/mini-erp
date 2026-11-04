@@ -553,6 +553,61 @@ input:disabled {
   margin: 0;
 }
 
+/* ---------- 체크박스 묶음 (거래처 구분) ---------- */
+fieldset.field {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+fieldset.field legend {
+  margin-bottom: 4px;
+  padding: 0;
+}
+
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+}
+
+.choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.choice-hint {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--primary);
+}
+
+/* ---------- 거래처 구분 태그 ---------- */
+.tags {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.tag-supplier {
+  background: #eef3fc;
+  color: var(--primary);
+}
+
+.tag-customer {
+  background: #fdf2e3;
+  color: #a15c07;
+}
+
 @media (max-width: 1100px) {
   .split {
     grid-template-columns: 1fr;
