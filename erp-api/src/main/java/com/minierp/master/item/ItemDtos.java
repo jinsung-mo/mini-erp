@@ -4,6 +4,8 @@ import java.time.Instant;
 
 import org.jspecify.annotations.Nullable;
 
+import com.minierp.master.MasterCode;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -20,7 +22,7 @@ public final class ItemDtos {
 
 	public record CreateRequest(
 			@NotNull(message = "품목 코드를 입력하세요.")
-			@Pattern(regexp = "[A-Z0-9][A-Z0-9-]{1,19}", message = "영문 대문자, 숫자, 하이픈(-)으로 2~20자여야 합니다.")
+			@Pattern(regexp = MasterCode.PATTERN, message = MasterCode.MESSAGE)
 			String code,
 
 			@NotBlank(message = "품목명을 입력하세요.")

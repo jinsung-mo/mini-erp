@@ -1,7 +1,6 @@
 package com.minierp.master.item;
 
 import java.util.List;
-import java.util.Locale;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
@@ -9,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.minierp.common.error.BusinessException;
 import com.minierp.common.error.ErrorCode;
+import com.minierp.common.jpa.LikePatterns;
 import com.minierp.master.item.ItemDtos.CreateRequest;
 import com.minierp.master.item.ItemDtos.Response;
 import com.minierp.master.item.ItemDtos.UpdateRequest;
@@ -30,8 +30,7 @@ public class ItemService {
 	}
 
 	public List<Response> search(@Nullable String keyword, @Nullable Boolean active) {
-		String pattern = "%" + (keyword == null ? "" : keyword.strip().toLowerCase(Locale.ROOT)) + "%";
-		return itemRepository.search(pattern, active).stream().map(Response::from).toList();
+		return itemRepository.search(LikePatterns.contains(keyword), active).stream().map(Response::from).toList();
 	}
 
 	public Response get(Long id) {
