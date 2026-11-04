@@ -65,6 +65,16 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   return (await res.json()) as T
 }
 
+/** 조회 조건 → 쿼리 문자열 ("?keyword=볼트&active=true"). 값이 없는 조건(undefined, 빈 문자열)은 보내지 않는다 */
+export function queryString(params: Record<string, string | boolean | undefined>): string {
+  const query = new URLSearchParams()
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== undefined && value !== '') query.set(key, String(value))
+  }
+  const qs = query.toString()
+  return qs ? `?${qs}` : ''
+}
+
 /** catch로 받은 값을 ApiError로 맞춘다 (api()는 항상 ApiError를 던지지만, 그 밖의 코드에서 난 예외도 대비) */
 export function toApiError(e: unknown): ApiError {
   return e instanceof ApiError ? e : new ApiError(0, 'UNKNOWN', '알 수 없는 오류가 발생했습니다.', [], false)
