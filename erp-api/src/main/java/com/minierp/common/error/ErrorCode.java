@@ -17,6 +17,7 @@ public enum ErrorCode {
 
 	// 기준정보
 	DUPLICATE_CODE(HttpStatus.CONFLICT, "이미 사용 중인 코드입니다."),
+	DUPLICATE_BUSINESS_NO(HttpStatus.CONFLICT, "이미 등록된 사업자등록번호입니다."),
 
 	// DB 제약조건: 애플리케이션 검사를 통과했지만 DB가 막은 경우 (주로 동시 요청)
 	DUPLICATE_KEY(HttpStatus.CONFLICT, "같은 데이터가 이미 저장되어 있습니다. 다른 사용자가 먼저 저장했을 수 있으니 확인 후 다시 시도하세요.");
