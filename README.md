@@ -38,8 +38,8 @@ mini-erp/
 │  ├─ com.minierp
 │  │  ├─ common/       공통: 에러 응답(ProblemDetail + code), 감사 컬럼(BaseEntity), 작업자(CurrentUser)
 │  │  ├─ system/       3계층 연결 확인용 상태 API
-│  │  └─ master/       기준정보: item/ (이후 partner/ warehouse/, 다음 단계에서 purchase/ inventory/ sales/)
-│  └─ db/migration/    Flyway 마이그레이션 (V1__create_item.sql ...)
+│  │  └─ master/       기준정보: item/ partner/ warehouse/ (다음 단계에서 purchase/ inventory/ sales/)
+│  └─ db/migration/    Flyway 마이그레이션 (V1__create_item.sql, V2__create_partner_and_warehouse.sql ...)
 ├─ docker-compose.yml  DB   PostgreSQL 17                  :55433
 └─ docs/               단계별 설계 이유와 트러블슈팅 기록
 ```
@@ -74,9 +74,9 @@ cd erp-web && npm install && npm run dev
 ## 로드맵
 
 - [x] 0. 프로젝트 골격: 3계층 연결, 공통 에러 응답, 상태 화면 → [docs/00-skeleton.md](docs/00-skeleton.md)
-- [ ] 1. 기준정보: 마스터 데이터의 의미 → [docs/01-master-data.md](docs/01-master-data.md)
+- [x] 1. 기준정보: 마스터 데이터의 의미 → [docs/01-master-data.md](docs/01-master-data.md)
   - [x] ① 품목: Flyway, 감사 컬럼, 사용 중지, 중복 코드 동시 요청 재현
-  - [ ] ② 거래처·창고
+  - [x] ② 거래처·창고: 공급처·고객 역할, 사업자등록번호 정규화·검증번호, 마이그레이션 실패 롤백·자동 flush 재현
 - [ ] 2. 구매: 발주 → 승인 → 입고, 상태 전이
 - [ ] 3. 재고: 수불 이력(원장) 기반 현재고, 입고 연동
 - [ ] 4. 판매: 수주 → 출고, 가용 재고 검증
