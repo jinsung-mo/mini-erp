@@ -38,8 +38,9 @@ mini-erp/
 │  ├─ com.minierp
 │  │  ├─ common/       공통: 에러 응답(ProblemDetail + code), 감사 컬럼(BaseEntity), 작업자(CurrentUser)
 │  │  ├─ system/       3계층 연결 확인용 상태 API
-│  │  └─ master/       기준정보: item/ partner/ warehouse/ (다음 단계에서 purchase/ inventory/ sales/)
-│  └─ db/migration/    Flyway 마이그레이션 (V1__create_item.sql, V2__create_partner_and_warehouse.sql ...)
+│  │  ├─ master/       기준정보: item/ partner/ warehouse/
+│  │  └─ purchase/     구매: order/ (발주) receipt/ (입고)   (다음 단계에서 inventory/ sales/)
+│  └─ db/migration/    Flyway 마이그레이션 (V1__create_item.sql, V2__..., V3__create_purchase.sql)
 ├─ docker-compose.yml  DB   PostgreSQL 17                  :55433
 └─ docs/               단계별 설계 이유와 트러블슈팅 기록
 ```
@@ -77,7 +78,9 @@ cd erp-web && npm install && npm run dev
 - [x] 1. 기준정보: 마스터 데이터의 의미 → [docs/01-master-data.md](docs/01-master-data.md)
   - [x] ① 품목: Flyway, 감사 컬럼, 사용 중지, 중복 코드 동시 요청 재현
   - [x] ② 거래처·창고: 공급처·고객 역할, 사업자등록번호 정규화·검증번호, 마이그레이션 실패 롤백·자동 flush 재현
-- [ ] 2. 구매: 발주 → 승인 → 입고, 상태 전이
+- [x] 2. 구매: 발주 → 승인 → 입고, 상태 전이 → [docs/02-purchase.md](docs/02-purchase.md)
+  - [x] 발주: 머리·줄·상태 이력, 전이 규칙 한곳, 직무 분리(본인 승인 금지), 화면 버전으로 낙관적 락
+  - [x] 입고: 부분 입고, 문서·받은 수량·상태를 한 트랜잭션으로, 동시 입고는 발주 행 잠금 (잠금 vs 버전 직접 비교)
 - [ ] 3. 재고: 수불 이력(원장) 기반 현재고, 입고 연동
 - [ ] 4. 판매: 수주 → 출고, 가용 재고 검증
 - [ ] 5. 트러블슈팅: 동시 출고 시 재고 음수 재현 → 락/낙관적 락으로 해결
