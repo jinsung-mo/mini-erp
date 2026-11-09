@@ -3,6 +3,9 @@ import { NavLink, Route, Routes } from 'react-router'
 import { ItemPage } from './pages/master/ItemPage'
 import { PartnerPage } from './pages/master/PartnerPage'
 import { WarehousePage } from './pages/master/WarehousePage'
+import { GoodsReceiptPage } from './pages/purchase/GoodsReceiptPage'
+import { PurchaseOrderListPage } from './pages/purchase/PurchaseOrderListPage'
+import { PurchaseOrderPage } from './pages/purchase/PurchaseOrderPage'
 import { SystemStatusPage } from './pages/SystemStatusPage'
 import { getOperatorId, OPERATORS, setOperatorId } from './session/operator'
 
@@ -19,7 +22,14 @@ const MODULES: { name: string; step: string; menus: Menu[] }[] = [
       { label: '창고', path: '/master/warehouses' },
     ],
   },
-  { name: '구매', step: '2단계', menus: [{ label: '발주' }, { label: '입고' }] },
+  {
+    name: '구매',
+    step: '2단계',
+    menus: [
+      { label: '발주', path: '/purchase/orders' },
+      { label: '입고', path: '/purchase/receipts' },
+    ],
+  },
   { name: '재고', step: '3단계', menus: [{ label: '현재고' }, { label: '수불 이력' }] },
   { name: '판매', step: '4단계', menus: [{ label: '수주' }, { label: '출고' }] },
 ]
@@ -78,6 +88,9 @@ export default function App() {
           <Route path="/master/items" element={<ItemPage />} />
           <Route path="/master/partners" element={<PartnerPage />} />
           <Route path="/master/warehouses" element={<WarehousePage />} />
+          <Route path="/purchase/orders" element={<PurchaseOrderListPage />} />
+          <Route path="/purchase/orders/:id" element={<PurchaseOrderPage />} />
+          <Route path="/purchase/receipts" element={<GoodsReceiptPage />} />
           <Route path="*" element={<p className="page-desc">페이지를 찾을 수 없습니다.</p>} />
         </Routes>
       </main>

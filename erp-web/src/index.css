@@ -608,8 +608,289 @@ input[type='checkbox'] {
   color: #a15c07;
 }
 
+/* ---------- 구매: 발주서·입고 ---------- */
+a.btn {
+  display: inline-block;
+  text-decoration: none;
+}
+
+.num {
+  text-align: right;
+}
+
+.grid th.num,
+.grid td.num {
+  text-align: right;
+}
+
+/* 발주 상태: 진행 중은 색, 끝난 상태는 회색 */
+.tag-po-draft {
+  background: #eef0f3;
+  color: #475467;
+}
+
+.tag-po-submitted {
+  background: #fdf2e3;
+  color: #a15c07;
+}
+
+.tag-po-approved {
+  background: #eef3fc;
+  color: var(--primary);
+}
+
+.tag-po-partially_received {
+  background: #f3ecfd;
+  color: #6b3fc5;
+}
+
+.tag-po-received {
+  background: #e6f4ec;
+  color: var(--up);
+}
+
+.tag-po-closed,
+.tag-po-canceled {
+  background: #f1f3f6;
+  color: var(--text-muted);
+}
+
+.doc-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.doc-title .form-code {
+  font-size: 15px;
+}
+
+.doc-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.doc-message .alert {
+  flex: 1;
+}
+
+.doc-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 16px;
+  align-items: start;
+}
+
+.doc-main,
+.doc-side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.panel {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.panel h2,
+.section-title {
+  margin: 0 0 12px;
+  font-size: 15px;
+}
+
+.section-title {
+  margin-top: 28px;
+}
+
+.panel-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 12px;
+  margin-bottom: 12px;
+}
+
+.panel-title h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.doc-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px 16px;
+}
+
+.readonly {
+  padding: 6px 0;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.grid.lines tbody tr {
+  cursor: default;
+}
+
+.grid.lines tbody tr:hover {
+  background: inherit;
+}
+
+.grid.lines td {
+  vertical-align: top;
+}
+
+.grid.lines select {
+  min-width: 200px;
+}
+
+.num-input {
+  width: 110px;
+  text-align: right;
+}
+
+.field-invalid > input,
+.field-invalid > select {
+  border-color: var(--down);
+}
+
+.remaining {
+  color: #6b3fc5;
+  font-weight: 600;
+}
+
+.row-done td {
+  color: var(--text-muted);
+}
+
+.row-static {
+  cursor: default;
+}
+
+.lines-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.total strong {
+  margin-left: 8px;
+  font-size: 16px;
+}
+
+.doc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.timeline {
+  margin: 0;
+  padding: 0 0 0 14px;
+  border-left: 2px solid var(--border);
+  list-style: none;
+}
+
+.timeline-item {
+  position: relative;
+  padding: 0 0 14px 4px;
+}
+
+.timeline-item:last-child {
+  padding-bottom: 0;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: -21px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--unknown);
+}
+
+.timeline-approved::before,
+.timeline-received::before {
+  background: var(--up);
+}
+
+.timeline-rejected::before,
+.timeline-canceled::before {
+  background: var(--down);
+}
+
+.timeline-submitted::before {
+  background: var(--checking);
+}
+
+.timeline-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+}
+
+.timeline-meta {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.timeline-reason {
+  margin-top: 4px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  background: #f8f9fb;
+  font-size: 13px;
+}
+
+.receipt-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.receipt-form {
+  margin-top: 16px;
+}
+
+.receipt-form form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.receipt-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px 16px;
+}
+
+.receipt-fields .field {
+  min-width: 180px;
+}
+
 @media (max-width: 1100px) {
-  .split {
+  .split,
+  .doc-layout {
     grid-template-columns: 1fr;
   }
 

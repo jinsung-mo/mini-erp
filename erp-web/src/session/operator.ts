@@ -9,6 +9,8 @@ export type Operator = { id: string; name: string }
 export const OPERATORS: Operator[] = [
   { id: 'admin', name: '기준정보 관리자' },
   { id: 'buyer01', name: '구매 담당' },
+  // 발주 승인권자. 구매 담당이 만든 발주를 승인한다 (본인이 만든 발주는 승인할 수 없다)
+  { id: 'manager01', name: '구매 팀장' },
   { id: 'wh01', name: '창고 담당' },
   { id: 'sales01', name: '영업 담당' },
 ]
