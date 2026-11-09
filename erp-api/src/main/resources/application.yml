@@ -21,6 +21,8 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        # 지연 로딩되는 연관(예: 발주 N건의 줄)을 하나씩이 아니라 최대 100개씩 IN 쿼리로 가져온다 (N+1 완화. 6단계에서 측정)
+        default_batch_fetch_size: 100
 
 server:
   port: 8082

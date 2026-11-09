@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
@@ -68,6 +69,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 			return problem(ErrorCode.DUPLICATE_KEY, ErrorCode.DUPLICATE_KEY.getMessage());
 		}
 		return handleUnexpected(e);
+	}
+
+	/**
+	 * 낙관적 락 실패: 버전을 확인하고 UPDATE하는 사이(update ... where version = ?)에 다른 트랜잭션이 먼저 커밋했다.
+	 * 화면이 보낸 버전은 Service에서 먼저 비교하지만, 그 비교를 동시에 통과한 요청은 여기로 온다 (중복 코드와 같은 두 겹 방어).
+	 */
+	@ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+	public ProblemDetail handleOptimisticLock(ObjectOptimisticLockingFailureException e) {
+		log.info("optimistic lock failure: {}", e.getMessage());
+		return problem(ErrorCode.CONCURRENT_MODIFICATION, ErrorCode.CONCURRENT_MODIFICATION.getMessage());
 	}
 
 	/** 3) 예상하지 못한 예외: 원인은 로그에만 남기고, 응답에는 내부 정보를 노출하지 않는다 */

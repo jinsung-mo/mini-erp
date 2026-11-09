@@ -26,8 +26,12 @@ public class PartnerService {
 
 	private final PartnerRepository partnerRepository;
 
-	public PartnerService(PartnerRepository partnerRepository) {
+	/** 사용 중지해도 되는지 묻는 다른 모듈들 (구매: 진행 중인 발주). 기준정보는 그 모듈들을 모른다 */
+	private final List<PartnerDeactivationGuard> deactivationGuards;
+
+	public PartnerService(PartnerRepository partnerRepository, List<PartnerDeactivationGuard> deactivationGuards) {
 		this.partnerRepository = partnerRepository;
+		this.deactivationGuards = deactivationGuards;
 	}
 
 	public List<Response> search(@Nullable String keyword, @Nullable PartnerRole role, @Nullable Boolean active) {
@@ -67,6 +71,7 @@ public class PartnerService {
 	@Transactional
 	public Response deactivate(Long id) {
 		Partner partner = find(id);
+		deactivationGuards.forEach(guard -> guard.checkDeactivatable(partner));
 		partner.deactivate();
 		return flushAndRespond(partner);
 	}

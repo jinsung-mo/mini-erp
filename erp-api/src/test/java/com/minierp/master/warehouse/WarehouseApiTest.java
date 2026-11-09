@@ -35,7 +35,7 @@ class WarehouseApiTest {
 
 	@BeforeEach
 	void cleanUp() {
-		jdbcTemplate.execute("truncate table warehouse restart identity");
+		jdbcTemplate.execute("truncate table warehouse restart identity cascade");
 	}
 
 	@Test

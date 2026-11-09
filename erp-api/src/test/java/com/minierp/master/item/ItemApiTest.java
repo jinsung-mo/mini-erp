@@ -41,7 +41,7 @@ class ItemApiTest {
 
 	@BeforeEach
 	void cleanUp() {
-		jdbcTemplate.execute("truncate table item restart identity");
+		jdbcTemplate.execute("truncate table item restart identity cascade");
 	}
 
 	@Test

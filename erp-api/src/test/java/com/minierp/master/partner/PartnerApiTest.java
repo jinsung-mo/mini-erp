@@ -49,7 +49,7 @@ class PartnerApiTest {
 
 	@BeforeEach
 	void cleanUp() {
-		jdbcTemplate.execute("truncate table partner restart identity");
+		jdbcTemplate.execute("truncate table partner restart identity cascade");
 	}
 
 	@Test

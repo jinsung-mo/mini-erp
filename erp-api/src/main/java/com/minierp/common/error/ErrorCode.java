@@ -18,6 +18,19 @@ public enum ErrorCode {
 	// 기준정보
 	DUPLICATE_CODE(HttpStatus.CONFLICT, "이미 사용 중인 코드입니다."),
 	DUPLICATE_BUSINESS_NO(HttpStatus.CONFLICT, "이미 등록된 사업자등록번호입니다."),
+	INACTIVE_MASTER(HttpStatus.CONFLICT, "사용 중지된 기준정보는 새 거래에 쓸 수 없습니다."),
+	PARTNER_HAS_OPEN_ORDERS(HttpStatus.CONFLICT, "진행 중인 거래가 있는 거래처는 사용 중지할 수 없습니다."),
+
+	// 구매
+	NOT_A_SUPPLIER(HttpStatus.CONFLICT, "공급처 역할이 없는 거래처에는 발주할 수 없습니다."),
+	DUPLICATE_LINE_ITEM(HttpStatus.BAD_REQUEST, "한 문서에 같은 품목을 두 줄로 넣을 수 없습니다."),
+	INVALID_QUANTITY_FOR_UNIT(HttpStatus.BAD_REQUEST, "이 단위는 소수 수량을 쓸 수 없습니다."),
+	INVALID_STATUS_TRANSITION(HttpStatus.CONFLICT, "지금 상태에서는 할 수 없는 작업입니다."),
+	SELF_APPROVAL_NOT_ALLOWED(HttpStatus.FORBIDDEN, "본인이 작성하거나 승인 요청한 문서는 승인할 수 없습니다."),
+	EXCEEDS_REMAINING_QUANTITY(HttpStatus.CONFLICT, "남은 수량보다 많이 처리할 수 없습니다."),
+
+	// 동시 수정: 화면이 본 데이터를 그사이 다른 사용자가 바꾼 경우 (낙관적 락)
+	CONCURRENT_MODIFICATION(HttpStatus.CONFLICT, "다른 사용자가 먼저 변경했습니다. 다시 조회한 뒤 시도하세요."),
 
 	// DB 제약조건: 애플리케이션 검사를 통과했지만 DB가 막은 경우 (주로 동시 요청)
 	DUPLICATE_KEY(HttpStatus.CONFLICT, "같은 데이터가 이미 저장되어 있습니다. 다른 사용자가 먼저 저장했을 수 있으니 확인 후 다시 시도하세요.");
