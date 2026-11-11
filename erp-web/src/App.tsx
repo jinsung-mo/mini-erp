@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { NavLink, Route, Routes } from 'react-router'
+import { StockPage } from './pages/inventory/StockPage'
+import { StockTransactionPage } from './pages/inventory/StockTransactionPage'
 import { ItemPage } from './pages/master/ItemPage'
 import { PartnerPage } from './pages/master/PartnerPage'
 import { WarehousePage } from './pages/master/WarehousePage'
@@ -30,7 +32,14 @@ const MODULES: { name: string; step: string; menus: Menu[] }[] = [
       { label: '입고', path: '/purchase/receipts' },
     ],
   },
-  { name: '재고', step: '3단계', menus: [{ label: '현재고' }, { label: '수불 이력' }] },
+  {
+    name: '재고',
+    step: '3단계',
+    menus: [
+      { label: '현재고', path: '/inventory/stocks' },
+      { label: '수불 이력', path: '/inventory/transactions' },
+    ],
+  },
   { name: '판매', step: '4단계', menus: [{ label: '수주' }, { label: '출고' }] },
 ]
 
@@ -91,6 +100,8 @@ export default function App() {
           <Route path="/purchase/orders" element={<PurchaseOrderListPage />} />
           <Route path="/purchase/orders/:id" element={<PurchaseOrderPage />} />
           <Route path="/purchase/receipts" element={<GoodsReceiptPage />} />
+          <Route path="/inventory/stocks" element={<StockPage />} />
+          <Route path="/inventory/transactions" element={<StockTransactionPage />} />
           <Route path="*" element={<p className="page-desc">페이지를 찾을 수 없습니다.</p>} />
         </Routes>
       </main>
