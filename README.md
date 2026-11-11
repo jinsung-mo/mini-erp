@@ -39,8 +39,9 @@ mini-erp/
 │  │  ├─ common/       공통: 에러 응답(ProblemDetail + code), 감사 컬럼(BaseEntity), 작업자(CurrentUser)
 │  │  ├─ system/       3계층 연결 확인용 상태 API
 │  │  ├─ master/       기준정보: item/ partner/ warehouse/
-│  │  └─ purchase/     구매: order/ (발주) receipt/ (입고)   (다음 단계에서 inventory/ sales/)
-│  └─ db/migration/    Flyway 마이그레이션 (V1__create_item.sql, V2__..., V3__create_purchase.sql)
+│  │  ├─ purchase/     구매: order/ (발주) receipt/ (입고)
+│  │  └─ inventory/    재고: 수불 원장, 현재고, 실사 조정   (다음 단계에서 sales/)
+│  └─ db/migration/    Flyway 마이그레이션 (V1__create_item.sql ... V4__create_inventory.sql)
 ├─ docker-compose.yml  DB   PostgreSQL 17                  :55433
 └─ docs/               단계별 설계 이유와 트러블슈팅 기록
 ```
@@ -81,7 +82,10 @@ cd erp-web && npm install && npm run dev
 - [x] 2. 구매: 발주 → 승인 → 입고, 상태 전이 → [docs/02-purchase.md](docs/02-purchase.md)
   - [x] 발주: 머리·줄·상태 이력, 전이 규칙 한곳, 직무 분리(본인 승인 금지), 화면 버전으로 낙관적 락
   - [x] 입고: 부분 입고, 문서·받은 수량·상태를 한 트랜잭션으로, 동시 입고는 발주 행 잠금 (잠금 vs 버전 직접 비교)
-- [ ] 3. 재고: 수불 이력(원장) 기반 현재고, 입고 연동
+- [x] 3. 재고: 수불 이력(원장) 기반 현재고, 입고 연동 → [docs/03-inventory.md](docs/03-inventory.md)
+  - [x] 원장이 원본, 현재고는 같은 트랜잭션에서 함께 바뀌는 합계. 재고를 바꾸는 입구는 `StockLedger` 하나
+  - [x] 입고 연동과 기존 입고 이관, 실사 조정(장부 수량 비교), 재고가 남은 창고 사용 중지 금지
+  - [x] 다른 발주의 동시 입고: 현재고 lost update, 잠금 순서와 교착 상태, 첫 INSERT 경쟁 재현
 - [ ] 4. 판매: 수주 → 출고, 가용 재고 검증
 - [ ] 5. 트러블슈팅: 동시 출고 시 재고 음수 재현 → 락/낙관적 락으로 해결
 - [ ] 6. 트러블슈팅: N+1, 대량 조회 페이징, 정합성 검증 배치
