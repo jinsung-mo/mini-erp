@@ -7,6 +7,7 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
@@ -79,6 +80,17 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	public ProblemDetail handleOptimisticLock(ObjectOptimisticLockingFailureException e) {
 		log.info("optimistic lock failure: {}", e.getMessage());
 		return problem(ErrorCode.CONCURRENT_MODIFICATION, ErrorCode.CONCURRENT_MODIFICATION.getMessage());
+	}
+
+	/**
+	 * 비관적 락 실패: 교착 상태(SQLState 40P01)로 PostgreSQL이 한쪽 트랜잭션을 끊었거나, 잠금을 얻지 못했다.
+	 * 데이터는 롤백돼서 맞지만 서버 버그는 아니므로 500 대신 409로 "다시 시도"를 알린다.
+	 * 재고는 잠그는 순서를 정해서(StockLedger) 교착 상태가 나지 않게 하고, 이 처리는 그래도 났을 때의 안전망이다.
+	 */
+	@ExceptionHandler(PessimisticLockingFailureException.class)
+	public ProblemDetail handlePessimisticLock(PessimisticLockingFailureException e) {
+		log.warn("pessimistic lock failure: {}", e.getMostSpecificCause().getMessage());
+		return problem(ErrorCode.LOCK_CONFLICT, ErrorCode.LOCK_CONFLICT.getMessage());
 	}
 
 	/** 3) 예상하지 못한 예외: 원인은 로그에만 남기고, 응답에는 내부 정보를 노출하지 않는다 */

@@ -13,8 +13,8 @@ import jakarta.persistence.Id;
 /**
  * 창고 마스터. 재고가 놓이는 장소다.
  *
- * 재고는 "품목 × 창고" 단위로 쌓인다 (3단계). 같은 볼트라도 본사 창고의 30개와 외부 창고의 70개는 다른 재고다.
- * "재고가 남은 창고는 사용 중지할 수 없다" 같은 규칙은 재고가 생기는 3단계에서 deactivate()에 더한다.
+ * 재고는 "품목 × 창고" 단위로 쌓인다. 같은 볼트라도 본사 창고의 30개와 외부 창고의 70개는 다른 재고다.
+ * "재고가 남은 창고는 사용 중지할 수 없다"는 재고 모듈이 WarehouseDeactivationGuard로 검사한다.
  */
 @Entity
 public class Warehouse extends BaseEntity {

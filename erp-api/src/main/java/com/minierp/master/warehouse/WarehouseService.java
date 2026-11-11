@@ -14,17 +14,20 @@ import com.minierp.master.warehouse.WarehouseDtos.Response;
 import com.minierp.master.warehouse.WarehouseDtos.UpdateRequest;
 
 /**
- * 창고 업무 규칙과 트랜잭션 경계. 지금은 품목과 같은 모양이지만 공통 클래스로 묶지 않았다.
- * 3단계에서 "재고가 남은 창고는 사용 중지할 수 없다"가 deactivate()에 들어오면서 규칙이 갈라진다.
+ * 창고 업무 규칙과 트랜잭션 경계. 품목과 비슷한 모양이지만 공통 클래스로 묶지 않았다.
+ * 3단계에서 "재고가 남은 창고는 사용 중지할 수 없다"가 deactivate()에 들어오면서 규칙이 갈라졌다.
  */
 @Service
 @Transactional(readOnly = true)
 public class WarehouseService {
 
 	private final WarehouseRepository warehouseRepository;
+	private final List<WarehouseDeactivationGuard> deactivationGuards;
 
-	public WarehouseService(WarehouseRepository warehouseRepository) {
+	public WarehouseService(WarehouseRepository warehouseRepository,
+			List<WarehouseDeactivationGuard> deactivationGuards) {
 		this.warehouseRepository = warehouseRepository;
+		this.deactivationGuards = deactivationGuards;
 	}
 
 	public List<Response> search(@Nullable String keyword, @Nullable Boolean active) {
@@ -54,6 +57,7 @@ public class WarehouseService {
 	@Transactional
 	public Response deactivate(Long id) {
 		Warehouse warehouse = find(id);
+		deactivationGuards.forEach(guard -> guard.checkDeactivatable(warehouse));
 		warehouse.deactivate();
 		return flushAndRespond(warehouse);
 	}

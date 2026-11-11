@@ -14,6 +14,8 @@ import com.minierp.common.error.BusinessException;
 import com.minierp.common.error.ErrorCode;
 import com.minierp.common.jpa.LikePatterns;
 import com.minierp.common.web.CurrentUser;
+import com.minierp.inventory.StockLedger;
+import com.minierp.inventory.StockMovement;
 import com.minierp.master.item.Item;
 import com.minierp.purchase.order.PurchaseOrder;
 import com.minierp.purchase.order.PurchaseOrderRepository;
@@ -22,14 +24,14 @@ import com.minierp.purchase.receipt.GoodsReceiptDtos.LineRequest;
 import com.minierp.purchase.receipt.GoodsReceiptDtos.Response;
 
 /**
- * 입고 처리. 입고 한 건은 한 트랜잭션 안에서 세 가지를 함께 바꾼다.
+ * 입고 처리. 입고 한 건은 한 트랜잭션 안에서 네 가지를 함께 바꾼다.
  * <ol>
  * <li>입고 문서(goods_receipt, goods_receipt_line) 생성</li>
  * <li>발주 줄의 받은 수량(received_quantity) 누적</li>
  * <li>발주 상태 전이(부분 입고 / 입고 완료)와 이력</li>
+ * <li>재고 원장 기록과 현재고 증가 (3단계, {@link StockLedger})</li>
  * </ol>
- * 하나라도 실패하면 셋 다 없던 일이 된다. "입고 문서는 있는데 발주는 그대로" 같은 어긋남이 ERP가 막아야 하는 일이다.
- * 3단계에서는 여기에 재고 원장 기록이 네 번째로 더해진다.
+ * 하나라도 실패하면 넷 다 없던 일이 된다. "입고 문서는 있는데 재고는 그대로" 같은 어긋남이 ERP가 막아야 하는 일이다.
  */
 @Service
 @Transactional(readOnly = true)
@@ -37,11 +39,13 @@ public class GoodsReceiptService {
 
 	private final GoodsReceiptRepository goodsReceiptRepository;
 	private final PurchaseOrderRepository purchaseOrderRepository;
+	private final StockLedger stockLedger;
 
 	public GoodsReceiptService(GoodsReceiptRepository goodsReceiptRepository,
-			PurchaseOrderRepository purchaseOrderRepository) {
+			PurchaseOrderRepository purchaseOrderRepository, StockLedger stockLedger) {
 		this.goodsReceiptRepository = goodsReceiptRepository;
 		this.purchaseOrderRepository = purchaseOrderRepository;
+		this.stockLedger = stockLedger;
 	}
 
 	public List<Response> search(@Nullable String keyword, @Nullable Long purchaseOrderId, @Nullable LocalDate fromDate,
@@ -71,6 +75,11 @@ public class GoodsReceiptService {
 		po.receive(quantities, receiptNo, CurrentUser.id());
 		GoodsReceipt receipt = goodsReceiptRepository
 				.save(new GoodsReceipt(receiptNo, po, request.receiptDate(), request.memo(), quantities));
+		// 입고 줄 id가 원장의 근거가 된다. IDENTITY라서 save() 때 INSERT가 나가 id가 이미 있다
+		stockLedger.post(receipt.getLines().stream()
+				.map(line -> StockMovement.goodsReceipt(line.getItem(), receipt.getWarehouse(), line.getQuantity(),
+						receipt.getReceiptDate(), receiptNo, line.getId()))
+				.toList());
 		return Response.from(receipt);
 	}
 
