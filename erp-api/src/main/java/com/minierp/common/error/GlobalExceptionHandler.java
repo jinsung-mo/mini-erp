@@ -20,6 +20,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import jakarta.persistence.LockTimeoutException;
+import jakarta.persistence.OptimisticLockException;
+import jakarta.persistence.PessimisticLockException;
+
 /**
  * 모든 에러 응답을 RFC 9457 ProblemDetail 형식으로 통일한다.
  *
@@ -75,9 +79,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	/**
 	 * 낙관적 락 실패: 버전을 확인하고 UPDATE하는 사이(update ... where version = ?)에 다른 트랜잭션이 먼저 커밋했다.
 	 * 화면이 보낸 버전은 Service에서 먼저 비교하지만, 그 비교를 동시에 통과한 요청은 여기로 온다 (중복 코드와 같은 두 겹 방어).
+	 *
+	 * jakarta.persistence.OptimisticLockException도 함께 받는다. Spring이 JPA 예외를 자기 예외(ObjectOptimistic...)로 바꿔 주는 것은
+	 * Repository를 거칠 때뿐이다. Service에서 entityManager.lock()을 직접 부르면 JPA 예외가 그대로 올라온다.
+	 * 4단계 동시 확정 테스트에서 같은 수주를 동시에 확정한 9건이 이 경로로 500이 난 것을 보고 추가했다 (2단계 발주 수정도 같은 경로였다).
 	 */
-	@ExceptionHandler(ObjectOptimisticLockingFailureException.class)
-	public ProblemDetail handleOptimisticLock(ObjectOptimisticLockingFailureException e) {
+	@ExceptionHandler({ ObjectOptimisticLockingFailureException.class, OptimisticLockException.class })
+	public ProblemDetail handleOptimisticLock(RuntimeException e) {
 		log.info("optimistic lock failure: {}", e.getMessage());
 		return problem(ErrorCode.CONCURRENT_MODIFICATION, ErrorCode.CONCURRENT_MODIFICATION.getMessage());
 	}
@@ -87,9 +95,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	 * 데이터는 롤백돼서 맞지만 서버 버그는 아니므로 500 대신 409로 "다시 시도"를 알린다.
 	 * 재고는 잠그는 순서를 정해서(StockLedger) 교착 상태가 나지 않게 하고, 이 처리는 그래도 났을 때의 안전망이다.
 	 */
-	@ExceptionHandler(PessimisticLockingFailureException.class)
-	public ProblemDetail handlePessimisticLock(PessimisticLockingFailureException e) {
-		log.warn("pessimistic lock failure: {}", e.getMostSpecificCause().getMessage());
+	@ExceptionHandler({ PessimisticLockingFailureException.class, PessimisticLockException.class,
+			LockTimeoutException.class })
+	public ProblemDetail handlePessimisticLock(RuntimeException e) {
+		log.warn("pessimistic lock failure: {}", e.getMessage());
 		return problem(ErrorCode.LOCK_CONFLICT, ErrorCode.LOCK_CONFLICT.getMessage());
 	}
 
