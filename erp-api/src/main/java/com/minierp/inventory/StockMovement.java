@@ -31,4 +31,11 @@ public record StockMovement(
 		return new StockMovement(StockTransactionType.GOODS_RECEIPT, item, warehouse, quantity, date, receiptNo,
 				receiptLineId, null, null);
 	}
+
+	/** 출고: 원장에는 음수로 쌓는다 */
+	public static StockMovement shipment(Item item, Warehouse warehouse, BigDecimal quantity, LocalDate date,
+			String shipmentNo, Long shipmentLineId) {
+		return new StockMovement(StockTransactionType.SHIPMENT, item, warehouse, quantity.negate(), date, shipmentNo,
+				shipmentLineId, null, null);
+	}
 }

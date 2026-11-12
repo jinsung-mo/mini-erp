@@ -1,6 +1,5 @@
 package com.minierp.inventory;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,16 +37,21 @@ public interface StockRepository extends JpaRepository<Stock, Long> {
 
 	Optional<Stock> findByItemIdAndWarehouseId(Long itemId, Long warehouseId);
 
-	boolean existsByWarehouseIdAndQuantityGreaterThan(Long warehouseId, BigDecimal quantity);
+	/** 재고가 남았거나 할당이 걸린 줄이 있는가. 할당만 남은 경우는 실사 분실로 현재고가 0이 됐는데 수주가 진행 중인 때다 */
+	@Query("""
+			select count(s) > 0 from Stock s
+			where s.warehouse.id = :warehouseId and (s.quantity > 0 or s.allocatedQuantity > 0)
+			""")
+	boolean hasStockOrAllocation(@Param("warehouseId") Long warehouseId);
 
-	/** 품목 코드·이름으로 검색. 0인 줄은 기본으로 숨긴다 (한 번 들어왔다가 다 나간 품목이 쌓이면 목록이 길어진다) */
+	/** 품목 코드·이름으로 검색. 현재고와 할당이 모두 0인 줄은 기본으로 숨긴다 (한 번 들어왔다가 다 나간 품목이 쌓이면 목록이 길어진다) */
 	@Query("""
 			select s from Stock s
 			join fetch s.item i
 			join fetch s.warehouse w
 			where (lower(i.code) like :pattern or lower(i.name) like :pattern)
 			  and (:warehouseId is null or w.id = :warehouseId)
-			  and (:includeZero = true or s.quantity <> 0)
+			  and (:includeZero = true or s.quantity <> 0 or s.allocatedQuantity <> 0)
 			order by i.code, w.code
 			""")
 	List<Stock> search(@Param("pattern") String pattern, @Param("warehouseId") @Nullable Long warehouseId,

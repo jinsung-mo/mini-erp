@@ -34,14 +34,14 @@ public final class InventoryDtos {
 		}
 	}
 
-	/** 현재고 한 줄 */
-	public record StockResponse(Long id, ItemRef item, WarehouseRef warehouse, BigDecimal quantity, Instant updatedAt,
-			String updatedBy) {
+	/** 현재고 한 줄. 가용 = 현재고 - 할당 (음수면 할당 부족) */
+	public record StockResponse(Long id, ItemRef item, WarehouseRef warehouse, BigDecimal quantity,
+			BigDecimal allocatedQuantity, BigDecimal availableQuantity, Instant updatedAt, String updatedBy) {
 
 		static StockResponse from(Stock stock) {
 			return new StockResponse(stock.getId(), ItemRef.from(stock.getItem()),
-					WarehouseRef.from(stock.getWarehouse()), stock.getQuantity(), stock.getUpdatedAt(),
-					stock.getUpdatedBy());
+					WarehouseRef.from(stock.getWarehouse()), stock.getQuantity(), stock.getAllocatedQuantity(),
+					stock.getAvailableQuantity(), stock.getUpdatedAt(), stock.getUpdatedBy());
 		}
 	}
 

@@ -42,6 +42,10 @@ public class Stock extends BaseEntity {
 	@Column(nullable = false, precision = 15, scale = 3)
 	private BigDecimal quantity;
 
+	/** 할당량: 확정한 수주 중 아직 내보내지 않은 수량의 합 (4단계). 물건은 창고에 있지만 이미 팔기로 약속한 몫이다 */
+	@Column(nullable = false, precision = 15, scale = 3)
+	private BigDecimal allocatedQuantity;
+
 	protected Stock() {
 	}
 
@@ -61,6 +65,24 @@ public class Stock extends BaseEntity {
 		return next;
 	}
 
+	/**
+	 * 할당을 늘리거나(+) 줄인다(-). 가용 재고가 충분한지는 부르는 쪽(StockLedger.allocate)이 잠근 뒤 확인한다.
+	 * 줄여서 음수가 되면 수주 줄과 할당량이 이미 어긋나 있다는 뜻이라 업무 오류가 아니라 버그로 본다.
+	 */
+	void allocate(BigDecimal delta) {
+		BigDecimal next = allocatedQuantity.add(delta);
+		if (next.signum() < 0) {
+			throw new IllegalStateException("%s(%s)의 할당량이 음수가 됩니다. (현재 %s, 변경 %s) 수주 줄과 할당량이 어긋났습니다."
+					.formatted(item.getCode(), warehouse.getCode(), allocatedQuantity.toPlainString(), delta.toPlainString()));
+		}
+		allocatedQuantity = next;
+	}
+
+	/** 가용 재고 = 현재고 - 할당량. 실사에서 분실이 확인되면 음수일 수 있다 (할당 부족) */
+	public BigDecimal getAvailableQuantity() {
+		return quantity.subtract(allocatedQuantity);
+	}
+
 	public Long getId() {
 		return id;
 	}
@@ -75,5 +97,9 @@ public class Stock extends BaseEntity {
 
 	public BigDecimal getQuantity() {
 		return quantity;
+	}
+
+	public BigDecimal getAllocatedQuantity() {
+		return allocatedQuantity;
 	}
 }

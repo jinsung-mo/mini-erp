@@ -18,12 +18,15 @@ public final class PurchaseFixtures {
 	private PurchaseFixtures() {
 	}
 
-	/** 재고·구매·기준정보 테이블을 모두 비운다. 서로 FK로 참조하므로 한 문장으로 함께 비운다 */
+	/** 판매·재고·구매·기준정보 테이블을 모두 비운다. 서로 FK로 참조하므로 한 문장으로 함께 비운다 */
 	public static void reset(JdbcTemplate jdbc) {
 		jdbc.execute("""
-				truncate table stock_transaction, stock, goods_receipt_line, goods_receipt, purchase_order_event,
+				truncate table shipment_line, shipment, sales_order_event, sales_order_line, sales_order,
+				               stock_transaction, stock, goods_receipt_line, goods_receipt, purchase_order_event,
 				               purchase_order_line, purchase_order, partner, warehouse, item restart identity
 				""");
+		jdbc.execute("alter sequence sales_order_no_seq restart");
+		jdbc.execute("alter sequence shipment_no_seq restart");
 		jdbc.execute("alter sequence purchase_order_no_seq restart");
 		jdbc.execute("alter sequence goods_receipt_no_seq restart");
 		jdbc.execute("alter sequence stock_adjustment_no_seq restart");

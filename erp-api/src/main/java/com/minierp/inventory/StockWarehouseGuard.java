@@ -1,7 +1,5 @@
 package com.minierp.inventory;
 
-import java.math.BigDecimal;
-
 import org.springframework.stereotype.Component;
 
 import com.minierp.common.error.BusinessException;
@@ -24,9 +22,9 @@ class StockWarehouseGuard implements WarehouseDeactivationGuard {
 
 	@Override
 	public void checkDeactivatable(Warehouse warehouse) {
-		if (stockRepository.existsByWarehouseIdAndQuantityGreaterThan(warehouse.getId(), BigDecimal.ZERO)) {
+		if (stockRepository.hasStockOrAllocation(warehouse.getId())) {
 			throw new BusinessException(ErrorCode.WAREHOUSE_HAS_STOCK,
-					"%s %s에 재고가 남아 있어서 사용 중지할 수 없습니다. 재고를 0으로 만든 뒤 시도하세요."
+					"%s %s에 재고나 수주 할당이 남아 있어서 사용 중지할 수 없습니다. 재고를 0으로 만들고 수주를 끝낸 뒤 시도하세요."
 							.formatted(warehouse.getCode(), warehouse.getName()));
 		}
 	}

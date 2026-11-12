@@ -29,6 +29,9 @@ public enum ErrorCode {
 	SELF_APPROVAL_NOT_ALLOWED(HttpStatus.FORBIDDEN, "본인이 작성하거나 승인 요청한 문서는 승인할 수 없습니다."),
 	EXCEEDS_REMAINING_QUANTITY(HttpStatus.CONFLICT, "남은 수량보다 많이 처리할 수 없습니다."),
 
+	// 판매
+	NOT_A_CUSTOMER(HttpStatus.CONFLICT, "고객 역할이 없는 거래처에는 수주할 수 없습니다."),
+
 	// 재고
 	INSUFFICIENT_STOCK(HttpStatus.CONFLICT, "재고가 부족합니다."),
 	WAREHOUSE_HAS_STOCK(HttpStatus.CONFLICT, "재고가 남아 있는 창고는 사용 중지할 수 없습니다."),
