@@ -8,6 +8,9 @@ import { WarehousePage } from './pages/master/WarehousePage'
 import { GoodsReceiptPage } from './pages/purchase/GoodsReceiptPage'
 import { PurchaseOrderListPage } from './pages/purchase/PurchaseOrderListPage'
 import { PurchaseOrderPage } from './pages/purchase/PurchaseOrderPage'
+import { SalesOrderListPage } from './pages/sales/SalesOrderListPage'
+import { SalesOrderPage } from './pages/sales/SalesOrderPage'
+import { ShipmentPage } from './pages/sales/ShipmentPage'
 import { SystemStatusPage } from './pages/SystemStatusPage'
 import { getOperatorId, OPERATORS, setOperatorId } from './session/operator'
 
@@ -40,7 +43,14 @@ const MODULES: { name: string; step: string; menus: Menu[] }[] = [
       { label: '수불 이력', path: '/inventory/transactions' },
     ],
   },
-  { name: '판매', step: '4단계', menus: [{ label: '수주' }, { label: '출고' }] },
+  {
+    name: '판매',
+    step: '4단계',
+    menus: [
+      { label: '수주', path: '/sales/orders' },
+      { label: '출고', path: '/sales/shipments' },
+    ],
+  },
 ]
 
 export default function App() {
@@ -100,6 +110,9 @@ export default function App() {
           <Route path="/purchase/orders" element={<PurchaseOrderListPage />} />
           <Route path="/purchase/orders/:id" element={<PurchaseOrderPage />} />
           <Route path="/purchase/receipts" element={<GoodsReceiptPage />} />
+          <Route path="/sales/orders" element={<SalesOrderListPage />} />
+          <Route path="/sales/orders/:id" element={<SalesOrderPage />} />
+          <Route path="/sales/shipments" element={<ShipmentPage />} />
           <Route path="/inventory/stocks" element={<StockPage />} />
           <Route path="/inventory/transactions" element={<StockTransactionPage />} />
           <Route path="*" element={<p className="page-desc">페이지를 찾을 수 없습니다.</p>} />

@@ -39,8 +39,8 @@ export function StockPage() {
         <div>
           <h1>현재고</h1>
           <p className="page-desc">
-            품목 × 창고별 지금 수량입니다. 입고와 실사 조정이 원장에 한 줄씩 쌓이고, 현재고는 그 합계입니다. 수량을 직접
-            고치는 기능은 없습니다.
+            품목 × 창고별 지금 수량입니다. 입고·출고·실사 조정이 원장에 한 줄씩 쌓이고, 현재고는 그 합계입니다. 할당은
+            확정한 수주가 아직 가져가지 않은 수량이고, 가용(현재고 - 할당)이 새 수주에 약속할 수 있는 수량입니다.
           </p>
         </div>
         <Link to="/inventory/transactions" className="btn btn-secondary">
@@ -107,6 +107,8 @@ export function StockPage() {
                 <th>단위</th>
                 <th>창고</th>
                 <th className="num">현재고</th>
+                <th className="num">할당</th>
+                <th className="num">가용</th>
                 <th>마지막 변경</th>
                 <th>변경일시</th>
               </tr>
@@ -130,13 +132,20 @@ export function StockPage() {
                   <td className="num">
                     <strong>{formatQuantity(stock.quantity)}</strong>
                   </td>
+                  <td className="num">{stock.allocatedQuantity === 0 ? '-' : formatQuantity(stock.allocatedQuantity)}</td>
+                  <td
+                    className={stock.availableQuantity < 0 ? 'num short' : 'num'}
+                    title={stock.availableQuantity < 0 ? '할당 부족: 약속한 수량보다 실제 재고가 적습니다' : undefined}
+                  >
+                    {formatQuantity(stock.availableQuantity)}
+                  </td>
                   <td>{stock.updatedBy}</td>
                   <td>{formatDateTime(stock.updatedAt)}</td>
                 </tr>
               ))}
               {!list.loading && list.rows.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="grid-empty">
+                  <td colSpan={10} className="grid-empty">
                     재고가 없습니다. 입고를 처리하면 여기에 나옵니다.
                   </td>
                 </tr>

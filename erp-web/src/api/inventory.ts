@@ -6,14 +6,19 @@ export type Stock = {
   item: ItemRef
   warehouse: Ref
   quantity: number
+  /** 확정한 수주 중 아직 내보내지 않은 수량 */
+  allocatedQuantity: number
+  /** 현재고 - 할당. 새 수주에 약속할 수 있는 수량. 실사 분실이 있으면 음수일 수 있다 */
+  availableQuantity: number
   updatedAt: string
   updatedBy: string
 }
 
-export type StockTransactionType = 'GOODS_RECEIPT' | 'ADJUSTMENT'
+export type StockTransactionType = 'GOODS_RECEIPT' | 'ADJUSTMENT' | 'SHIPMENT'
 
 export const TRANSACTION_TYPES: { value: StockTransactionType; label: string }[] = [
   { value: 'GOODS_RECEIPT', label: '입고' },
+  { value: 'SHIPMENT', label: '출고' },
   { value: 'ADJUSTMENT', label: '재고 조정' },
 ]
 
