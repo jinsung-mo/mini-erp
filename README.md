@@ -40,8 +40,9 @@ mini-erp/
 │  │  ├─ system/       3계층 연결 확인용 상태 API
 │  │  ├─ master/       기준정보: item/ partner/ warehouse/
 │  │  ├─ purchase/     구매: order/ (발주) receipt/ (입고)
-│  │  └─ inventory/    재고: 수불 원장, 현재고, 실사 조정   (다음 단계에서 sales/)
-│  └─ db/migration/    Flyway 마이그레이션 (V1__create_item.sql ... V4__create_inventory.sql)
+│  │  ├─ inventory/    재고: 수불 원장, 현재고·할당, 실사 조정
+│  │  └─ sales/        판매: order/ (수주, 확정 시 할당) shipment/ (출고)
+│  └─ db/migration/    Flyway 마이그레이션 (V1__create_item.sql ... V5__create_sales.sql)
 ├─ docker-compose.yml  DB   PostgreSQL 17                  :55433
 └─ docs/               단계별 설계 이유와 트러블슈팅 기록
 ```
@@ -86,7 +87,10 @@ cd erp-web && npm install && npm run dev
   - [x] 원장이 원본, 현재고는 같은 트랜잭션에서 함께 바뀌는 합계. 재고를 바꾸는 입구는 `StockLedger` 하나
   - [x] 입고 연동과 기존 입고 이관, 실사 조정(장부 수량 비교), 재고가 남은 창고 사용 중지 금지
   - [x] 다른 발주의 동시 입고: 현재고 lost update, 잠금 순서와 교착 상태, 첫 INSERT 경쟁 재현
-- [ ] 4. 판매: 수주 → 출고, 가용 재고 검증
+- [x] 4. 판매: 수주 → 확정(재고 할당) → 출고, 가용 재고 검증 → [docs/04-sales.md](docs/04-sales.md)
+  - [x] 가용 = 현재고 - 할당. 확정 때 할당, 출고는 현재고·할당을 함께 감소, 취소·마감은 할당 해제. 할당도 `StockLedger`만 바꾼다
+  - [x] 할당 ≤ 현재고는 DB 제약 대신 음수 가용으로 드러냄 (실사 분실을 기록할 수 있게)
+  - [x] 동시 확정 재현: 다른 수주 10건 → 3건만 할당, 같은 수주 10번 → 1건만. 직접 부른 `EntityManager.lock()`의 JPA 예외가 500이 되던 문제 수정
 - [ ] 5. 트러블슈팅: 동시 출고 시 재고 음수 재현 → 락/낙관적 락으로 해결
 - [ ] 6. 트러블슈팅: N+1, 대량 조회 페이징, 정합성 검증 배치
 - [ ] 7. 문서화: 아키텍처 결정 기록(ADR)
